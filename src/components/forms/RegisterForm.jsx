@@ -10,6 +10,8 @@ function RegisterForm({ onNavigateToLogin }) {
 		password: '',
 		confirmPassword: '',
 	});
+	const [error, setError] = useState('');
+	const [loading, setLoading] = useState(false);
 
 	const handleChange = (field) => (e) => {
 		setFormData((prev) => ({
@@ -18,9 +20,55 @@ function RegisterForm({ onNavigateToLogin }) {
 		}));
 	};
 
-	const handleSubmit = (e) => {
+	const handleSubmit = async (e) => {
 		e.preventDefault();
-		console.log('Register:', formData);
+		setError('');
+		
+		// Validar se as senhas coincidem
+		if (formData.password !== formData.confirmPassword) {
+			setError('As senhas não coincidem');
+			return;
+		}
+
+		// Validar se a senha tem pelo menos 6 caracteres
+		if (formData.password.length < 6) {
+			setError('A senha deve ter pelo menos 6 caracteres');
+			return;
+		}
+
+		setLoading(true);
+
+		try {
+			const response = await fetch('http://localhost:3001/user', {
+				method: 'PUT',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({
+					name: formData.name,
+					username: '',
+					email: formData.email,
+					password: formData.password,
+					phone: '',
+					city: '',
+					state: '',
+					bio: ''
+				})
+			});
+
+			if (!response.ok) {
+				throw new Error('Erro ao criar conta');
+			}
+
+			console.log('Account created successfully:', formData);
+			// Navegar para o login após sucesso
+			onNavigateToLogin?.();
+		} catch (err) {
+			console.error('Registration error:', err);
+			setError('Erro ao criar conta. Tente novamente.');
+		} finally {
+			setLoading(false);
+		}
 	};
 
 	return (
@@ -29,6 +77,12 @@ function RegisterForm({ onNavigateToLogin }) {
 			<p className='text-sm text-brand-gray-light mb-4'>Crie sua conta para começar a correr!</p>
 
 			<form onSubmit={handleSubmit} className='space-y-4'>
+				{error && (
+					<div className='bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm'>
+						{error}
+					</div>
+				)}
+
 				<Input
 					label='Nome completo'
 					type='text'
@@ -65,11 +119,13 @@ function RegisterForm({ onNavigateToLogin }) {
 					required
 				/>
 
-				<Button type='submit'>
-					Criar conta
-					<svg className='w-4 h-4 ml-2' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-						<path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 5l7 7-7 7' />
-					</svg>
+				<Button type='submit' disabled={loading}>
+					{loading ? 'Criando conta...' : 'Criar conta'}
+					{!loading && (
+						<svg className='w-4 h-4 ml-2' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+							<path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 5l7 7-7 7' />
+						</svg>
+					)}
 				</Button>
 			</form>
 

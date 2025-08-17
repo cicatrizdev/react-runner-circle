@@ -8,12 +8,34 @@ function LoginForm({ onNavigateToRegister, onNavigateToFeed }) {
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
 	const [rememberMe, setRememberMe] = useState(false);
+	const [error, setError] = useState('');
+	const [loading, setLoading] = useState(false);
 
-	const handleSubmit = (e) => {
+	const handleSubmit = async (e) => {
 		e.preventDefault();
-		console.log('Login:', { email, password, rememberMe });
-		// Simular login bem-sucedido
-		onNavigateToFeed?.();
+		setError('');
+		setLoading(true);
+
+		try {
+			const response = await fetch('http://localhost:3001/user');
+			if (!response.ok) {
+				throw new Error('Erro ao conectar com o servidor');
+			}
+
+			const userData = await response.json();
+			
+			if (userData.email === email && userData.password === password) {
+				console.log('Login successful:', { email, rememberMe });
+				onNavigateToFeed?.();
+			} else {
+				setError('Email ou senha incorretos. Tente novamente.');
+			}
+		} catch (err) {
+			console.error('Login error:', err);
+			setError('Erro ao fazer login. Tente novamente.');
+		} finally {
+			setLoading(false);
+		}
 	};
 
 	return (
@@ -22,6 +44,12 @@ function LoginForm({ onNavigateToRegister, onNavigateToFeed }) {
 			<p className='text-sm text-brand-gray-light mb-4'>Boas-vindas! Faça seu login.</p>
 
 			<form onSubmit={handleSubmit} className='space-y-4'>
+				{error && (
+					<div className='bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm'>
+						{error}
+					</div>
+				)}
+
 				<Input
 					label='Email'
 					type='email'
@@ -46,11 +74,13 @@ function LoginForm({ onNavigateToRegister, onNavigateToFeed }) {
 					onChange={(e) => setRememberMe(e.target.checked)}
 				/>
 
-				<Button type='submit'>
-					Login
-					<svg className='w-4 h-4 ml-2' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-						<path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 5l7 7-7 7' />
-					</svg>
+				<Button type='submit' disabled={loading}>
+					{loading ? 'Entrando...' : 'Login'}
+					{!loading && (
+						<svg className='w-4 h-4 ml-2' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+							<path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 5l7 7-7 7' />
+						</svg>
+					)}
 				</Button>
 			</form>
 

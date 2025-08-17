@@ -1,18 +1,53 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Input from '../ui/Input'
 import Button from '../ui/Button'
 import Textarea from '../ui/Textarea'
 
 function EditProfileForm({ onSubmit, onCancel }) {
   const [formData, setFormData] = useState({
-    nome: 'Ana Silva Correia',
-    username: '@anasilva',
-    email: 'ana.silva@email.com',
-    telefone: '(11) 99999-9999',
-    cidade: 'São Paulo',
-    estado: 'SP',
-    bio: 'Corredora apaixonada por novos desafios. Sempre em busca da próxima meta!'
+    name: '',
+    username: '',
+    email: '',
+    phone: '',
+    city: '',
+    state: '',
+    bio: ''
   })
+  const [originalPassword, setOriginalPassword] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        setLoading(true)
+        const response = await fetch('http://localhost:3001/user')
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+        const userData = await response.json()
+        
+        setFormData({
+          name: userData.name || '',
+          username: userData.username || '',
+          email: userData.email || '',
+          phone: userData.phone || userData.telefone || '',
+          city: userData.city || userData.cidade || '',
+          state: userData.state || userData.estado || '',
+          bio: userData.bio || ''
+        })
+        setOriginalPassword(userData.password || '')
+        setError(null)
+      } catch (err) {
+        console.error('Error fetching user data:', err)
+        setError(err.message)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchUserData()
+  }, [])
 
   const handleChange = (field) => (e) => {
     const value = e.target ? e.target.value : e
@@ -23,9 +58,55 @@ function EditProfileForm({ onSubmit, onCancel }) {
   }
 
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    onSubmit?.(formData)
+    try {
+      const response = await fetch('http://localhost:3001/user', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          username: formData.username,
+          email: formData.email,
+          password: originalPassword,
+          phone: formData.phone,
+          city: formData.city,
+          state: formData.state,
+          bio: formData.bio
+        })
+      })
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      
+      onSubmit?.(formData)
+    } catch (err) {
+      console.error('Error updating user data:', err)
+      setError(err.message)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="bg-white rounded-lg shadow-lg p-6 max-w-2xl mx-auto">
+        <div className="flex justify-center items-center py-8">
+          <div className="text-gray-500">Carregando dados do perfil...</div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="bg-white rounded-lg shadow-lg p-6 max-w-2xl mx-auto">
+        <div className="flex justify-center items-center py-8">
+          <div className="text-red-500">Erro ao carregar perfil: {error}</div>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -47,17 +128,17 @@ function EditProfileForm({ onSubmit, onCancel }) {
         {/* Informações Pessoais */}
         <div className="space-y-4">
           <Input
-            label="Nome completo"
-            value={formData.nome}
-            onChange={handleChange('nome')}
-            placeholder="Seu nome completo"
+            label="Full Name"
+            value={formData.name}
+            onChange={handleChange('name')}
+            placeholder="Your full name"
           />
 
           <Input
-            label="Nome de usuário"
+            label="Username"
             value={formData.username}
             onChange={handleChange('username')}
-            placeholder="@seunome"
+            placeholder="@yourusername"
           />
 
           <Input
@@ -65,27 +146,27 @@ function EditProfileForm({ onSubmit, onCancel }) {
             type="email"
             value={formData.email}
             onChange={handleChange('email')}
-            placeholder="seu@email.com"
+            placeholder="your@email.com"
           />
 
           <Input
-            label="Telefone"
-            value={formData.telefone}
-            onChange={handleChange('telefone')}
+            label="Phone"
+            value={formData.phone}
+            onChange={handleChange('phone')}
             placeholder="(11) 99999-9999"
           />
 
           <div className="grid grid-cols-2 gap-4">
             <Input
-              label="Cidade"
-              value={formData.cidade}
-              onChange={handleChange('cidade')}
-              placeholder="Sua cidade"
+              label="City"
+              value={formData.city}
+              onChange={handleChange('city')}
+              placeholder="Your city"
             />
             <Input
-              label="Estado"
-              value={formData.estado}
-              onChange={handleChange('estado')}
+              label="State"
+              value={formData.state}
+              onChange={handleChange('state')}
               placeholder="SP"
             />
           </div>
@@ -94,7 +175,7 @@ function EditProfileForm({ onSubmit, onCancel }) {
             label="Bio"
             value={formData.bio}
             onChange={handleChange('bio')}
-            placeholder="Conte um pouco sobre você..."
+            placeholder="Tell us about yourself..."
             rows={3}
           />
         </div>
