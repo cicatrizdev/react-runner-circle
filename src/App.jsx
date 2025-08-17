@@ -1,17 +1,37 @@
+import { useState } from 'react'
+import Login from './pages/Login'
+import Register from './pages/Register'
+import Feed from './pages/Feed'
+import NewPost from './pages/NewPost'
+import EditProfile from './pages/EditProfile'
+
 function App() {
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-600 to-purple-700 flex items-center justify-center">
-      <div className="text-center text-white">
-        <h1 className="text-6xl font-bold mb-4">Runner Circle</h1>
-        <p className="text-xl opacity-90">Bem-vindo ao seu novo projeto React!</p>
-        <div className="mt-8">
-          <button className="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
-            Começar
-          </button>
-        </div>
-      </div>
-    </div>
-  )
+  const [currentPage, setCurrentPage] = useState('feed') // 'login' | 'register' | 'feed' | 'newpost' | 'profile'
+
+  const navigateToRegister = () => setCurrentPage('register')
+  const navigateToLogin = () => setCurrentPage('login')
+  const navigateToFeed = () => setCurrentPage('feed')
+  const navigateToNewPost = () => setCurrentPage('newpost')
+  const navigateToProfile = () => setCurrentPage('profile')
+  const handleLogout = () => setCurrentPage('login')
+
+  if (currentPage === 'register') {
+    return <Register onNavigateToLogin={navigateToLogin} />
+  }
+
+  if (currentPage === 'feed') {
+    return <Feed onNavigateToNewPost={navigateToNewPost} onNavigateToProfile={navigateToProfile} onLogout={handleLogout} />
+  }
+
+  if (currentPage === 'newpost') {
+    return <NewPost onNavigateToFeed={navigateToFeed} />
+  }
+
+  if (currentPage === 'profile') {
+    return <EditProfile onNavigateToFeed={navigateToFeed} onNavigateToNewPost={navigateToNewPost} onLogout={handleLogout} />
+  }
+
+  return <Login onNavigateToRegister={navigateToRegister} onNavigateToFeed={navigateToFeed} />
 }
 
 export default App
