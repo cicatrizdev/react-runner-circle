@@ -7,6 +7,7 @@ import FloatingActionButton from '../components/ui/FloatingActionButton';
 import { useQuery } from '@apollo/client';
 import ErrorMessage from '../components/ui/ErrorMessage';
 import { GET_FEED } from '../../database/graphql/query/feed';
+import Dropdown from '../components/ui/Dropdown';
 
 function Feed({ onNavigateToNewPost, onNavigateToProfile, onLogout }) {
 	const [activeItem, setActiveItem] = useState('feed');
@@ -57,6 +58,14 @@ function Feed({ onNavigateToNewPost, onNavigateToProfile, onLogout }) {
 						<h1 className='text-2xl font-bold text-brand-graphite mb-6 hidden md:block'>
 							Feed de Treinos
 						</h1>
+
+						<Dropdown
+							options={[]}
+							value={''}
+							onChange={() => {}}
+							placeholder='Todos'
+							className='mb-6'
+						/>
 
 						{/* Loading State */}
 						{loading && (
