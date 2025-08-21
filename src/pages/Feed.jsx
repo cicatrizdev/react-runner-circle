@@ -9,10 +9,12 @@ import { gql, useQuery } from '@apollo/client';
 const GET_FEED = gql`
 	query GetFeed {
 		allFeeds {
+			id
 			user
 			time
 			stats
 			description
+			workout
 		}
 	}
 `;
@@ -24,7 +26,7 @@ function Feed({ onNavigateToNewPost, onNavigateToProfile, onLogout }) {
 
 	useEffect(() => {
 		const fetchWorkouts = async () => {
-			const normalizedWorkouts = data.map((item) => {
+			const normalizedWorkouts = data.allFeeds.map((item) => {
 				if (item.workout) {
 					return {
 						id: item.id,
@@ -49,6 +51,8 @@ function Feed({ onNavigateToNewPost, onNavigateToProfile, onLogout }) {
 			onLogout?.();
 		}
 	};
+
+	console.log(error);
 
 	return (
 		<div className='min-h-screen bg-gray-50'>
