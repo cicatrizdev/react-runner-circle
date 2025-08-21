@@ -13,28 +13,27 @@ function Feed({ onNavigateToNewPost, onNavigateToProfile, onLogout }) {
 	const [activeItem, setActiveItem] = useState('feed');
 	const [workouts, setWorkouts] = useState([]);
 	const [selectedCategory, setSelectedCategory] = useState('');
-	const { loading, error, data } = useQuery(GET_FEED);
-	const {
-		loading: loadingCategory,
-		error: errorCategory,
-		data: dataCategory,
-	} = useQuery(GET_FEED_BY_CATEGORY);
+	const { loading, error, data } = useQuery(selectedCategory ? GET_FEED_BY_CATEGORY : GET_FEED, {
+		variables: selectedCategory ? { category: selectedCategory } : {},
+	});
 
 	useEffect(() => {
-		const fetchWorkouts = async () => {
-			const normalizedWorkouts = data.allFeeds.map((item) => {
-				if (item.workout) {
-					return {
-						id: item.id,
-						...item.workout,
-					};
-				}
-				return item;
-			});
-			setWorkouts(normalizedWorkouts);
-		};
+		if (data?.allFeeds) {
+			const fetchWorkouts = async () => {
+				const normalizedWorkouts = data.allFeeds.map((item) => {
+					if (item.workout) {
+						return {
+							id: item.id,
+							...item.workout,
+						};
+					}
+					return item;
+				});
+				setWorkouts(normalizedWorkouts);
+			};
 
-		fetchWorkouts();
+			fetchWorkouts();
+		}
 	}, [data]);
 
 	const handleMenuClick = (itemId) => {
@@ -48,7 +47,11 @@ function Feed({ onNavigateToNewPost, onNavigateToProfile, onLogout }) {
 		}
 	};
 
-	console.log(error);
+	const categoryOptions = [
+		{ value: '', label: 'Todos' },
+		{ value: 'corrida', label: 'Corrida' },
+		{ value: 'caminhada', label: 'Caminhada' },
+	];
 
 	return (
 		<div className='min-h-screen bg-gray-50'>
@@ -66,10 +69,10 @@ function Feed({ onNavigateToNewPost, onNavigateToProfile, onLogout }) {
 						</h1>
 
 						<Dropdown
-							options={[]}
-							value={''}
-							onChange={() => {}}
-							placeholder='Todos'
+							options={categoryOptions}
+							value={selectedCategory}
+							onChange={setSelectedCategory}
+							placeholder='Selecione uma categoria'
 							className='mb-6'
 						/>
 
