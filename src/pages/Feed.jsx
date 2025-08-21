@@ -6,13 +6,19 @@ import WorkoutCard from '../components/ui/WorkoutCard';
 import FloatingActionButton from '../components/ui/FloatingActionButton';
 import { useQuery } from '@apollo/client';
 import ErrorMessage from '../components/ui/ErrorMessage';
-import { GET_FEED } from '../../database/graphql/query/feed';
+import { GET_FEED, GET_FEED_BY_CATEGORY } from '../../database/graphql/query/feed';
 import Dropdown from '../components/ui/Dropdown';
 
 function Feed({ onNavigateToNewPost, onNavigateToProfile, onLogout }) {
 	const [activeItem, setActiveItem] = useState('feed');
 	const [workouts, setWorkouts] = useState([]);
+	const [selectedCategory, setSelectedCategory] = useState('');
 	const { loading, error, data } = useQuery(GET_FEED);
+	const {
+		loading: loadingCategory,
+		error: errorCategory,
+		data: dataCategory,
+	} = useQuery(GET_FEED_BY_CATEGORY);
 
 	useEffect(() => {
 		const fetchWorkouts = async () => {
