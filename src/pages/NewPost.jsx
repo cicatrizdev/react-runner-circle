@@ -9,6 +9,39 @@ import { GET_FEED, GET_FEED_BY_CATEGORY } from '../../database/graphql/query/fee
 function NewPost({ onNavigateToFeed }) {
 	const [addFeedPost, { loading: savingPost }] = useMutation(ADD_FEED_POST, {
 		refetchQueries: [{ query: GET_FEED }, { query: GET_FEED_BY_CATEGORY }],
+		update: (cache, { data: { createFeed } }) => {
+			try {
+				const existingFeed = cache.readQuery({ query: GET_FEED });
+				if (existingFeed) {
+					cache.writeQuery({
+						query: GET_FEED,
+						data: {
+							feed: [createFeed, ...existingFeed.feed],
+						},
+					});
+				}
+			} catch (error) {
+				console.log('Cache update error:', error);
+			}
+
+			try {
+				const existingCategoryFeed = cache.readQuery({
+					query: GET_FEED_BY_CATEGORY,
+					variables: { category: createFeed.category },
+				});
+				if (existingCategoryFeed) {
+					cache.writeQuery({
+						query: GET_FEED_BY_CATEGORY,
+						variables: { category: createFeed.category },
+						data: {
+							feedByCategory: [createFeed, ...existingCategoryFeed.feedByCategory],
+						},
+					});
+				}
+			} catch (error) {
+				console.log('Category cache update error:', error);
+			}
+		},
 	});
 
 	const handleSubmit = async (formData) => {
