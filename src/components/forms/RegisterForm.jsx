@@ -23,7 +23,7 @@ function RegisterForm({ onNavigateToLogin }) {
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 		setError('');
-		
+
 		// Validar se as senhas coincidem
 		if (formData.password !== formData.confirmPassword) {
 			setError('As senhas não coincidem');
@@ -39,7 +39,7 @@ function RegisterForm({ onNavigateToLogin }) {
 		setLoading(true);
 
 		try {
-			const response = await fetch('http://localhost:3001/user', {
+			const response = await fetch('http://localhost:3002/user', {
 				method: 'PUT',
 				headers: {
 					'Content-Type': 'application/json',
@@ -52,8 +52,8 @@ function RegisterForm({ onNavigateToLogin }) {
 					phone: '',
 					city: '',
 					state: '',
-					bio: ''
-				})
+					bio: '',
+				}),
 			});
 
 			if (!response.ok) {

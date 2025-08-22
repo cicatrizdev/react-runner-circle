@@ -4,10 +4,11 @@ import Sidebar from '../components/layout/Sidebar';
 import BottomNavigation from '../components/layout/BottomNavigation';
 import WorkoutCard from '../components/ui/WorkoutCard';
 import FloatingActionButton from '../components/ui/FloatingActionButton';
-import { useQuery } from '@apollo/client';
+import { useMutation, useQuery } from '@apollo/client';
 import ErrorMessage from '../components/ui/ErrorMessage';
 import { GET_FEED, GET_FEED_BY_CATEGORY } from '../../database/graphql/query/feed';
 import Dropdown from '../components/ui/Dropdown';
+import { DELETE_FEED_POST } from '../../database/graphql/mutation/feed';
 
 function Feed({ onNavigateToNewPost, onNavigateToProfile, onLogout }) {
 	const [activeItem, setActiveItem] = useState('feed');
@@ -15,6 +16,38 @@ function Feed({ onNavigateToNewPost, onNavigateToProfile, onLogout }) {
 	const [selectedCategory, setSelectedCategory] = useState('');
 	const { loading, error, data } = useQuery(selectedCategory ? GET_FEED_BY_CATEGORY : GET_FEED, {
 		variables: selectedCategory ? { category: selectedCategory } : {},
+	});
+	const [deleteFeedPost] = useMutation(DELETE_FEED_POST, {
+		refetchQueries: [{ query: GET_FEED }, { query: GET_FEED_BY_CATEGORY }],
+		update: (cache, { data: { deleteFeed } }) => {
+			try {
+				const existingFeed = cache.readQuery({ query: GET_FEED });
+				if (existingFeed) {
+					cache.writeQuery({
+						query: GET_FEED,
+						data: {
+							feed: existingFeed.feed.filter((post) => post.id !== deleteFeed.id),
+						},
+					});
+				}
+			} catch (error) {
+				console.log('Cache update error:', error);
+			}
+
+			try {
+				const existingCategoryFeed = cache.readQuery({
+					query: GET_FEED_BY_CATEGORY,
+					variables: { category: deleteFeed.category },
+					data: {
+						feedByCategory: existingCategoryFeed.feedByCategory.filter(
+							(post) => post.id !== deleteFeed.id
+						),
+					},
+				});
+			} catch (error) {
+				console.log('Category cache update error:', error);
+			}
+		},
 	});
 
 	useEffect(() => {
@@ -47,7 +80,9 @@ function Feed({ onNavigateToNewPost, onNavigateToProfile, onLogout }) {
 		}
 	};
 
-	const handleDelete = (id) => {};
+	const handleDelete = (id) => {
+		deleteFeedPost({ variables: { id } });
+	};
 
 	const categoryOptions = [
 		{ value: '', label: 'Todos' },

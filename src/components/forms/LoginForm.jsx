@@ -17,13 +17,13 @@ function LoginForm({ onNavigateToRegister, onNavigateToFeed }) {
 		setLoading(true);
 
 		try {
-			const response = await fetch('http://localhost:3001/user');
+			const response = await fetch('http://localhost:3002/user');
 			if (!response.ok) {
 				throw new Error('Erro ao conectar com o servidor');
 			}
 
 			const userData = await response.json();
-			
+
 			if (userData.email === email && userData.password === password) {
 				console.log('Login successful:', { email, rememberMe });
 				onNavigateToFeed?.();
